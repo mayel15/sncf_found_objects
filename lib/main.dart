@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sncf_found_objects/src/pages/home_page.dart'; // Importez votre page Home
+import 'package:sncf_found_objects/src/pages/home_page.dart'; 
+
 
 void main() {
   runApp(MyApp());
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(), // Définir la page Home ici
+      home: HomePage(),
     );
   }
 }

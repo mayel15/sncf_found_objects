@@ -1,51 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-class DateRangeFilter extends StatefulWidget {
-  final Function(String) onDateRangeSelected; // Callback pour renvoyer la plage de dates sélectionnée
+class DateRangePickerButton extends StatefulWidget {
+  final Function(DateTimeRange?) onDateRangeSelected;
 
-  const DateRangeFilter({Key? key, required this.onDateRangeSelected}) : super(key: key);
+  DateRangePickerButton({required this.onDateRangeSelected});
 
   @override
-  _DateRangeFilterState createState() => _DateRangeFilterState();
+  _DateRangePickerButtonState createState() => _DateRangePickerButtonState();
 }
 
-class _DateRangeFilterState extends State<DateRangeFilter> {
-  String _range = '';
+class _DateRangePickerButtonState extends State<DateRangePickerButton> {
+  DateTimeRange? _selectedDateRange;
 
-  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
-    if (args.value is PickerDateRange) {
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    
+    if (picked != null) {
       setState(() {
-        _range = '${DateFormat('dd/MM/yyyy').format(args.value.startDate)} - '
-            '${DateFormat('dd/MM/yyyy').format(args.value.endDate ?? args.value.startDate)}';
+        _selectedDateRange = picked;
       });
-      widget.onDateRangeSelected(_range); // Appelle la fonction de rappel
+
+      // Vérifier que cette partie appelle correctement la fonction pour filtrer
+      print("Plage de date sélectionnée : ${_selectedDateRange!.start} - ${_selectedDateRange!.end}");
+      widget.onDateRangeSelected(_selectedDateRange); // Appel du callback
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Plage de dates sélectionnée: $_range',
-            style: TextStyle(fontSize: 16),
-          ),
-        ),
-        Expanded(
-          child: SfDateRangePicker(
-            onSelectionChanged: _onSelectionChanged,
-            selectionMode: DateRangePickerSelectionMode.range,
-            initialSelectedRange: PickerDateRange(
-              DateTime.now().subtract(const Duration(days: 4)),
-              DateTime.now().add(const Duration(days: 3)),
-            ),
-          ),
-        ),
-      ],
+    return IconButton(
+      icon: Icon(Icons.date_range, color: Colors.black),
+      onPressed: () => _selectDateRange(context),
     );
   }
 }
