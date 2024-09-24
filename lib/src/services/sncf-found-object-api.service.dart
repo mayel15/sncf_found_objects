@@ -87,7 +87,7 @@ class SncfFoundObjectApiService extends ChangeNotifier {
           .toList();
       // print("found objects after removing end date : $foundObjects");
     }
-    notifyListeners();
+    // notifyListeners();
 
     return foundObjectsFiltered;
   }

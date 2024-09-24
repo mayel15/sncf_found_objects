@@ -58,7 +58,7 @@ class FoundObjectCard extends StatelessWidget {
               alignment: Alignment.bottomLeft,
               child: Text(
                 item.date.toIso8601String(),
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: const TextStyle(color: Colors.black, fontSize: 12),
               ),
             ),
           ],
