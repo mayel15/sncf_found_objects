@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:sncf_found_objects/src/pages/home_page.dart'; 
+import 'package:provider/provider.dart';
+import 'package:sncf_found_objects/src/pages/home_page.dart';
+import 'package:sncf_found_objects/src/services/sncf-found-object-api.service.dart';
 
-
-void main() {
-  runApp(MyApp());
+Future<void> main() async {
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => SncfFoundObjectApiService(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Objets Trouvés',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: HomePage(),
-    );
+    return MaterialApp(title: 'Objets Trouvés', routes: {
+      '/': (context) => const HomePage(),
+    });
   }
 }
