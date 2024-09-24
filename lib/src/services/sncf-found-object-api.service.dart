@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:sncf_found_objects/src/models/found-object.model.dart';
 import 'package:http/http.dart' as http;
 
-class SncfFoundObjectApiService {
+class SncfFoundObjectApiService extends ChangeNotifier {
   final apiUrl =
       'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records';
-  final limitItems = 100;
+  final limitItems = 5;
 
   Future<List<FoundObjectModel>> getAllFoundObjects() async {
     try {
@@ -61,32 +62,34 @@ class SncfFoundObjectApiService {
       String? originStationName, DateTime? startDate, DateTime? endDate) async {
     final foundObjects = await getAllFoundObjects();
     List<FoundObjectModel> foundObjectsFiltered = foundObjects;
-    print("found objects : $foundObjects");
+    // print("found objects : $foundObjects");
     if (objectCategory != null) {
       foundObjectsFiltered = foundObjects
           .where((element) => element.objectCategory == objectCategory)
           .toList();
-      print("found objects after removing category : $foundObjects");
+      // print("found objects after removing category : $foundObjects");
     }
     if (originStationName != null) {
       foundObjectsFiltered = foundObjectsFiltered
           .where((element) => element.originStationName == originStationName)
           .toList();
-      print("found objects after removing origin station : $foundObjects");
+      // print("found objects after removing origin station : $foundObjects");
     }
     if (startDate != null) {
       foundObjectsFiltered = foundObjects
           .where((element) => element.date.isAfter(startDate))
           .toList();
-      print("found objects after removing start date : $foundObjects");
+      // print("found objects after removing start date : $foundObjects");
     }
     if (endDate != null) {
       foundObjectsFiltered = foundObjects
           .where((element) => element.date.isBefore(endDate))
           .toList();
-      print("found objects after removing end date : $foundObjects");
+      // print("found objects after removing end date : $foundObjects");
     }
-    return foundObjects;
+    notifyListeners();
+
+    return foundObjectsFiltered;
   }
 
   Future<List<FoundObjectModel>> getFoundObjectsFromLastConsulationDate(
