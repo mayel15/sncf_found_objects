@@ -6,12 +6,12 @@ import 'package:http/http.dart' as http;
 class SncfFoundObjectApiService extends ChangeNotifier {
   final apiUrl =
       'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records';
-  final limitItems = 5;
+  final limitItems = 200;
 
   Future<List<FoundObjectModel>> getAllFoundObjects() async {
     try {
       // If the server did return a 200 OK response,
-      final response = await http.get(Uri.parse(apiUrl),
+      final response = await http.get(Uri.parse("$apiUrl?limit=$limitItems"),
           headers: {"Content-Type": "application/json"});
       final data = jsonDecode(response.body);
       final dataResultsField = data['results'] as List;
@@ -67,27 +67,22 @@ class SncfFoundObjectApiService extends ChangeNotifier {
       foundObjectsFiltered = foundObjects
           .where((element) => element.objectCategory == objectCategory)
           .toList();
-      // print("found objects after removing category : $foundObjects");
     }
     if (originStationName != null) {
       foundObjectsFiltered = foundObjectsFiltered
           .where((element) => element.originStationName == originStationName)
           .toList();
-      // print("found objects after removing origin station : $foundObjects");
     }
     if (startDate != null) {
-      foundObjectsFiltered = foundObjects
+      foundObjectsFiltered = foundObjectsFiltered
           .where((element) => element.date.isAfter(startDate))
           .toList();
-      // print("found objects after removing start date : $foundObjects");
     }
     if (endDate != null) {
-      foundObjectsFiltered = foundObjects
+      foundObjectsFiltered = foundObjectsFiltered
           .where((element) => element.date.isBefore(endDate))
           .toList();
-      // print("found objects after removing end date : $foundObjects");
     }
-    // notifyListeners();
 
     return foundObjectsFiltered;
   }

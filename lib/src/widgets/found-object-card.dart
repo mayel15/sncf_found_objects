@@ -13,6 +13,7 @@ class FoundObjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+      color: const Color.fromARGB(217, 217, 217, 217),
       elevation: 5,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
