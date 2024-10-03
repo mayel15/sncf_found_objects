@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 class SncfFoundObjectApiService extends ChangeNotifier {
   final apiUrl =
       'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records';
-  final limitItems = 200;
+  final limitItems = 100;
 
   Future<List<FoundObjectModel>> getAllFoundObjects() async {
     try {
@@ -58,19 +58,23 @@ class SncfFoundObjectApiService extends ChangeNotifier {
     }
   }
 
-  Future<List<FoundObjectModel>> filterFoundObjects(String? objectCategory,
-      String? originStationName, DateTime? startDate, DateTime? endDate) async {
+  Future<List<FoundObjectModel>> filterFoundObjects(
+      List<String?> objectCategoriesList,
+      List<String?> originStationNamesList,
+      DateTime? startDate,
+      DateTime? endDate) async {
     final foundObjects = await getAllFoundObjects();
     List<FoundObjectModel> foundObjectsFiltered = foundObjects;
-    // print("found objects : $foundObjects");
-    if (objectCategory != null) {
+    if (objectCategoriesList.isNotEmpty) {
       foundObjectsFiltered = foundObjects
-          .where((element) => element.objectCategory == objectCategory)
+          .where((element) =>
+              objectCategoriesList.contains(element.objectCategory))
           .toList();
     }
-    if (originStationName != null) {
+    if (originStationNamesList.isNotEmpty) {
       foundObjectsFiltered = foundObjectsFiltered
-          .where((element) => element.originStationName == originStationName)
+          .where((element) =>
+              originStationNamesList.contains(element.originStationName))
           .toList();
     }
     if (startDate != null) {
@@ -89,7 +93,7 @@ class SncfFoundObjectApiService extends ChangeNotifier {
 
   Future<List<FoundObjectModel>> getFoundObjectsFromLastConsulationDate(
       DateTime date) async {
-    return await filterFoundObjects(null, null, date, null);
+    return await filterFoundObjects([], [], date, null);
   }
 }
 
@@ -116,50 +120,47 @@ void main() {
   //
 
   // get found objects by applying all filters
-  sncfFoundObjectApiService
-      .filterFoundObjects(
-          "Pièces d'identité et papiers personnels",
-          "Toulouse Matabiau",
-          DateTime.parse('2018-08-28T13:58:33+00:00'),
-          DateTime.parse('2019-10-10T13:58:33+00:00'))
-      .then((data) => print("found objects data by filters all: $data"));
+  sncfFoundObjectApiService.filterFoundObjects(
+      ["Pièces d'identité et papiers personnels"],
+      ["Toulouse Matabiau"],
+      DateTime.parse('2018-08-28T13:58:33+00:00'),
+      DateTime.parse(
+          '2019-10-10T13:58:33+00:00')).then(
+      (data) => print("found objects data by filters all: $data"));
 
   // get found objects by only date range : OK
-  sncfFoundObjectApiService
-      .filterFoundObjects(
-          null, null, DateTime.parse('2018-02-14 09:28:40.000Z'), null)
-      .then((data) => print("found objects data by only date range: $data"));
+  sncfFoundObjectApiService.filterFoundObjects([], [],
+      DateTime.parse('2018-02-14 09:28:40.000Z'),
+      null).then((data) => print("found objects data by only date range: $data"));
 
   // // get found objects by only origin station : OK
   sncfFoundObjectApiService
-      .filterFoundObjects(null, "Lille Flandres", null, null)
-      .then(
+      .filterFoundObjects([], ["Lille Flandres"], null, null).then(
           (data) => print("found objects data by only origin station: $data"));
 
   // // get found objects by only object category : OK
-  sncfFoundObjectApiService
-      .filterFoundObjects(
-          "Pièces d'identités et papiers personnels", null, null, null)
-      .then(
-          (data) => print("found objects data by only object category: $data"));
+  sncfFoundObjectApiService.filterFoundObjects([
+    "Pièces d'identités et papiers personnels"
+  ], [], null, null).then(
+      (data) => print("found objects data by only object category: $data"));
 
   // get found objects by only date range and origin station : OK
-  sncfFoundObjectApiService
-      .filterFoundObjects(null, "Lille Flandres", null, null)
-      .then((data) => print(
-          "found objects data by only date range and origin station: $data"));
+  sncfFoundObjectApiService.filterFoundObjects([], [
+    "Lille Flandres"
+  ], null, null).then((data) =>
+      print("found objects data by only date range and origin station: $data"));
 
   // get found objects by only object category and origin station
-  sncfFoundObjectApiService
-      .filterFoundObjects("Pièces d'identité et papiers personnels",
-          "Toulouse Matabiau", null, null)
-      .then((data) => print(
-          "found objects data by only object category and origin station: $data"));
+  sncfFoundObjectApiService.filterFoundObjects([
+    "Pièces d'identité et papiers personnels"
+  ], [
+    "Toulouse Matabiau"
+  ], null, null).then((data) => print(
+      "found objects data by only object category and origin station: $data"));
 
   // get found objects by only date range and object category
-  sncfFoundObjectApiService
-      .filterFoundObjects(
-          "Pièces d'identité et papiers personnels", null, null, null)
-      .then((data) => print(
-          "found objects data by only date range and object category: $data"));
+  sncfFoundObjectApiService.filterFoundObjects([
+    "Pièces d'identité et papiers personnels"
+  ], [], null, null).then((data) => print(
+      "found objects data by only date range and object category: $data"));
 }

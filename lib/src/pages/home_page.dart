@@ -14,10 +14,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? seletedOriginStationName;
-  String? selectedObjectCategory;
+  List<String?> seletedOriginStationNamesList = [];
+  List<String?> selectedObjectCategoriesList = [];
   DateTime? selectedStartDate;
   DateTime? selectedEndDate;
+
+  DateTimeRange selectedDateRange = DateTimeRange(
+    start: DateTime.now(),
+    end: DateTime.now(),
+  );
+
+  void handleDateRangeSelected(BuildContext context) async {
+    final DateTimeRange? dateTimeRangePicked = await showDateRangePicker(
+        context: context, firstDate: DateTime(2020), lastDate: DateTime(2030));
+    if (dateTimeRangePicked != null) {
+      setState(() {
+        selectedDateRange = dateTimeRangePicked;
+      });
+    }
+  }
 
   // Listes des objets perdus
   final List<FoundObjectModel> foundObjects = [
@@ -48,9 +63,8 @@ class _HomePageState extends State<HomePage> {
       await FilterListDialog.display<String>(
         context,
         listData: originStationList,
-        selectedListData: seletedOriginStationName == null
-            ? []
-            : [seletedOriginStationName as String],
+        selectedListData:
+            seletedOriginStationNamesList.whereType<String>().toList(),
         choiceChipLabel: (category) => category,
         validateSelectedItem: (list, val) => list!.contains(val),
         onItemSearch: (category, query) {
@@ -59,8 +73,8 @@ class _HomePageState extends State<HomePage> {
         onApplyButtonClick: (list) {
           setState(() {
             list!.isEmpty
-                ? seletedOriginStationName = null
-                : seletedOriginStationName = list[0];
+                ? seletedOriginStationNamesList = []
+                : seletedOriginStationNamesList = list;
           });
           Navigator.pop(context);
         },
@@ -74,9 +88,8 @@ class _HomePageState extends State<HomePage> {
       await FilterListDialog.display<String>(
         context,
         listData: categoryList,
-        selectedListData: selectedObjectCategory == null
-            ? []
-            : [selectedObjectCategory as String],
+        selectedListData:
+            selectedObjectCategoriesList.whereType<String>().toList(),
         choiceChipLabel: (category) => category,
         validateSelectedItem: (list, val) => list!.contains(val),
         onItemSearch: (category, query) {
@@ -85,8 +98,8 @@ class _HomePageState extends State<HomePage> {
         onApplyButtonClick: (list) {
           setState(() {
             list!.isEmpty
-                ? selectedObjectCategory = null
-                : selectedObjectCategory = list[0];
+                ? selectedObjectCategoriesList = []
+                : selectedObjectCategoriesList = list;
           });
           Navigator.pop(context);
         },
@@ -106,10 +119,10 @@ class _HomePageState extends State<HomePage> {
           builder: (context, apiService, child) =>
               FutureBuilder<List<FoundObjectModel>>(
                 future: apiService.filterFoundObjects(
-                    selectedObjectCategory,
-                    seletedOriginStationName,
-                    selectedStartDate,
-                    selectedEndDate),
+                    selectedObjectCategoriesList,
+                    seletedOriginStationNamesList,
+                    selectedDateRange.start,
+                    selectedDateRange.end),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     List<Widget> foundObjects = [];
@@ -171,7 +184,11 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   child: const Icon(Icons.date_range,
                                       color: Colors.white, size: 48.0),
-                                  onPressed: () async => {},
+                                  onPressed: () async => {
+                                    handleDateRangeSelected(
+                                      context,
+                                    )
+                                  },
                                 ),
                               ]),
                         ),
@@ -184,7 +201,15 @@ class _HomePageState extends State<HomePage> {
                                 fontWeight: FontWeight.bold, fontSize: 24),
                           ),
                         ),
-                        Expanded(child: foundObjectsListView),
+                        Expanded(
+                            child: foundObjects.isEmpty
+                                ? const Center(
+                                    child: Text("Aucun objet trouvé",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.normal,
+                                            fontSize: 24)),
+                                  )
+                                : foundObjectsListView),
                       ],
                     );
                   } else if (snapshot.hasError) {
