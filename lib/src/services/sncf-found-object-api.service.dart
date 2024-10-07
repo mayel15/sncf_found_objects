@@ -2,19 +2,25 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:sncf_found_objects/src/models/found-object.model.dart';
 import 'package:http/http.dart' as http;
+import 'package:sncf_found_objects/src/services/file.service.dart';
+import 'package:sncf_found_objects/src/widgets/found-object-card.dart';
 
 class SncfFoundObjectApiService extends ChangeNotifier {
   final apiUrl =
       'https://data.sncf.com/api/explore/v2.1/catalog/datasets/objets-trouves-restitution/records';
-  final limitItems = 100;
 
-  Future<List<FoundObjectModel>> getAllFoundObjects() async {
+  final limitItems = 100;
+  final fileService = FileService();
+
+  Future<List<FoundObjectModel>> getAllFoundObjects(String startDate) async {
     try {
       // If the server did return a 200 OK response,
-      final response = await http.get(Uri.parse("$apiUrl?limit=$limitItems"),
+      final response = await http.get(
+          Uri.parse("$apiUrl?where=date>\"$startDate\"&limit=$limitItems"),
           headers: {"Content-Type": "application/json"});
-      final data = jsonDecode(response.body);
+      final data = json.decode(response.body);
       final dataResultsField = data['results'] as List;
+      // print("dataResultsField : $dataResultsField");
       final foundObjectsData =
           dataResultsField.map((e) => FoundObjectModel.fromJson(e)).toList();
       return foundObjectsData;
@@ -63,8 +69,19 @@ class SncfFoundObjectApiService extends ChangeNotifier {
       List<String?> originStationNamesList,
       DateTime? startDate,
       DateTime? endDate) async {
-    final foundObjects = await getAllFoundObjects();
+    String lastConsultationDate = await fileService.readLastConsulationDate();
+    // lastConsultationDate = "2024-08-01";
+    // final foundObjects = await getAllFoundObjects(
+    //     lastConsultationDate.toString() ?? "2024-01-01");
+
+    final currentMonth = DateTime.now().month;
+    // all the found objects in the current month
+    final foundObjects = await getAllFoundObjects(
+        lastConsultationDate ?? "2024-$currentMonth-01");
+
     List<FoundObjectModel> foundObjectsFiltered = foundObjects;
+    // print("found objects : $foundObjects");
+    // print("filtered objects : $foundObjectsFiltered");
     if (objectCategoriesList.isNotEmpty) {
       foundObjectsFiltered = foundObjects
           .where((element) =>
@@ -87,6 +104,7 @@ class SncfFoundObjectApiService extends ChangeNotifier {
           .where((element) => element.date.isBefore(endDate))
           .toList();
     }
+    // print(foundObjectsFiltered);
 
     return foundObjectsFiltered;
   }
@@ -101,7 +119,9 @@ void main() {
   final sncfFoundObjectApiService = SncfFoundObjectApiService();
 
   // get all found objects
-  sncfFoundObjectApiService.getAllFoundObjects().then((data) {
+  sncfFoundObjectApiService
+      .getAllFoundObjects(DateTime.now().toString())
+      .then((data) {
     print("found objects data : $data");
   });
 

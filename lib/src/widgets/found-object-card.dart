@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sncf_found_objects/src/models/found-object.model.dart';
 
 class FoundObjectCard extends StatelessWidget {
@@ -11,6 +12,7 @@ class FoundObjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DateFormat dateFormat = DateFormat('dd/MM/yyyy à HH:mm:ss');
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
       color: const Color.fromARGB(217, 217, 217, 217),
@@ -32,7 +34,7 @@ class FoundObjectCard extends StatelessWidget {
                 const SizedBox(
                     width: 8), // Espacement entre l'icône et le texte
                 Text(
-                  item.originStationName,
+                  item.originStationName ?? 'Non spécifié',
                   style: const TextStyle(fontSize: 16),
                 ),
               ],
@@ -58,7 +60,7 @@ class FoundObjectCard extends StatelessWidget {
             Align(
               alignment: Alignment.bottomLeft,
               child: Text(
-                item.date.toIso8601String(),
+                dateFormat.format(item.date),
                 style: const TextStyle(color: Colors.black, fontSize: 12),
               ),
             ),

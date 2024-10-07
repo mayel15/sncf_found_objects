@@ -2,8 +2,8 @@ import 'package:filter_list/filter_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sncf_found_objects/src/models/found-object.model.dart';
+import 'package:sncf_found_objects/src/services/file.service.dart';
 import 'package:sncf_found_objects/src/services/sncf-found-object-api.service.dart';
-import 'package:sncf_found_objects/src/widgets/filter_widget.dart';
 import 'package:sncf_found_objects/src/widgets/found-object-card.dart';
 
 class HomePage extends StatefulWidget {
@@ -24,12 +24,29 @@ class _HomePageState extends State<HomePage> {
     end: DateTime.now(),
   );
 
+  final currentMonth = DateTime.now().month;
+
+  @override
+  void initState() {
+    super.initState();
+    updateLastConsultationDate(DateTime.now());
+    //fileService.writeLastConsulationDate("2024-10-01");
+  }
+
+  void updateLastConsultationDate(DateTime date) {
+    FileService fileService = FileService();
+    fileService.writeLastConsulationDate(date.toString());
+  }
+
   void handleDateRangeSelected(BuildContext context) async {
     final DateTimeRange? dateTimeRangePicked = await showDateRangePicker(
-        context: context, firstDate: DateTime(2020), lastDate: DateTime(2030));
+        context: context,
+        firstDate: DateTime.parse("2024-$currentMonth-01"),
+        lastDate: DateTime.now()); // range is only from 2000 to
     if (dateTimeRangePicked != null) {
       setState(() {
-        selectedDateRange = dateTimeRangePicked;
+        selectedStartDate = dateTimeRangePicked.start;
+        selectedEndDate = dateTimeRangePicked.end;
       });
     }
   }
@@ -44,18 +61,8 @@ class _HomePageState extends State<HomePage> {
         objectCategory: "Electronique"),
   ];
 
-  // Les valeurs sélectionnées pour les filtre
-
   @override
   Widget build(BuildContext context) {
-    // Filtrer les objets en fonction des filtres sélectionnés
-    // final filteredItems = lostItems.where((item) {
-    //   final stationMatches =
-    //       selectedStation == null || item['stationName'] == selectedStation;
-    //   final categoryMatches =
-    //       selectedCategory == null || item['category'] == selectedCategory;
-    //   return stationMatches && categoryMatches;
-    // }).toList();
     double width = MediaQuery.sizeOf(context).width;
     double height = MediaQuery.sizeOf(context).height;
 
@@ -81,6 +88,7 @@ class _HomePageState extends State<HomePage> {
         resetButtonText: "Reinitialiser",
         applyButtonText: "Appliquer",
         allButtonText: "Tout",
+        selectedItemsText: "gares sélectionnées",
       );
     }
 
@@ -106,6 +114,7 @@ class _HomePageState extends State<HomePage> {
         resetButtonText: "Reinitialiser",
         applyButtonText: "Appliquer",
         allButtonText: "Tout",
+        selectedItemsText: "catégories sélectionnées",
       );
     }
 
@@ -121,8 +130,8 @@ class _HomePageState extends State<HomePage> {
                 future: apiService.filterFoundObjects(
                     selectedObjectCategoriesList,
                     seletedOriginStationNamesList,
-                    selectedDateRange.start,
-                    selectedDateRange.end),
+                    selectedStartDate,
+                    selectedEndDate),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     List<Widget> foundObjects = [];
@@ -149,7 +158,7 @@ class _HomePageState extends State<HomePage> {
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
                                   child: const Icon(Icons.train,
-                                      color: Colors.white, size: 48.0),
+                                      color: Colors.white, size: 24.0),
                                   onPressed: () async => {
                                     openFilterOriginStationDialog(
                                         await apiService
@@ -167,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
                                   child: const Icon(Icons.category,
-                                      color: Colors.white, size: 48.0),
+                                      color: Colors.white, size: 24.0),
                                   onPressed: () async => {
                                     openFilterCategoryDialog(await apiService
                                         .getObjectCategoriesList()
@@ -183,11 +192,31 @@ class _HomePageState extends State<HomePage> {
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
                                   child: const Icon(Icons.date_range,
-                                      color: Colors.white, size: 48.0),
+                                      color: Colors.white, size: 24.0),
                                   onPressed: () async => {
                                     handleDateRangeSelected(
                                       context,
                                     )
+                                  },
+                                ),
+                                MaterialButton(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 0.0, vertical: 8.0),
+                                  color: Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  child: const Icon(Icons.refresh,
+                                      color: Colors.white, size: 24.0),
+                                  onPressed: () async => {
+                                    setState(() {
+                                      selectedObjectCategoriesList = [];
+                                      seletedOriginStationNamesList = [];
+                                      selectedStartDate = null;
+                                      selectedEndDate = null;
+                                      updateLastConsultationDate(DateTime.parse(
+                                          "2024-$currentMonth-01"));
+                                    })
                                   },
                                 ),
                               ]),

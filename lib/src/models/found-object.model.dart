@@ -1,7 +1,9 @@
+import 'package:intl/intl.dart';
+
 class FoundObjectModel {
   final DateTime date;
   final DateTime? restitutionDate;
-  final String originStationName;
+  final String? originStationName;
   final String objectNature;
   final String objectCategory;
 
@@ -18,7 +20,7 @@ class FoundObjectModel {
       {
         'date': String date,
         'gc_obo_date_heure_restitution_c': String? restitutionDate,
-        'gc_obo_gare_origine_r_name': String originStationName,
+        'gc_obo_gare_origine_r_name': String? originStationName,
         'gc_obo_nature_c': String objectNature,
         'gc_obo_type_c': String objectCategory,
       } =>
